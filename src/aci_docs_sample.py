@@ -5,6 +5,12 @@ from azure.common.client_factory import get_client_from_auth_file
 from azure.mgmt.containerinstance import ContainerInstanceManagementClient
 from azure.mgmt.resource import ResourceManagementClient
 
+# Support input() on Python 2.x
+try:
+    input = raw_input
+except NameError:
+    pass
+
 def main():
    """Main entry point for the application.
    """
@@ -26,13 +32,14 @@ def main():
        print("Authenticating with Azure using credentials in file at {0}".format(environ['AZURE_AUTH_LOCATION']))
 
        aciclient = get_client_from_auth_file(ContainerInstanceManagementClient)
-       armclient = get_client_from_auth_file(ResourceManagementClient)
+       resclient = get_client_from_auth_file(ResourceManagementClient)
    except (EnvironmentError, KeyError):
        print("\nFailed to authenticate to Azure. Have you set the AZURE_AUTH_LOCATION environment variable?\n")
        raise
 
    # Create a resource group into which the container groups are to be created
-   create_resource_group(armclient, resource_group_name, 'eastus')
+   print("Creating resource group '{0}'...".format(resource_group_name))
+   resclient.resource_groups.create_or_update(resource_group_name, { 'location': 'eastus' })
 
    # Demonstrate various container group operations
    #create_container_group(aciclient, resource_group_name, container_group_name, container_image_app)
@@ -42,20 +49,8 @@ def main():
    list_container_groups(aciclient, resource_group_name)
    #print_container_group_details()
 
-def create_resource_group(resource_client, resource_group_name, azure_region):
-    """[summary]
-
-    Arguments:
-        resource_client {ResourceManagementClient} -- An authenticated resource management client.
-        resource_group_name {string} -- The name of the resource group to be created.
-        azure_region {string} -- The Azure region in which to create the resource group.
-    """
-    print("Creating resource group '{0}'...".format(resource_group_name))
-
-    resource_client.resource_groups.create_or_update(resource_group_name, { 'location': azure_region })
-
-
-
+   input("Press ENTER to delete all resources created by this sample...")
+   resclient.resource_groups.delete(resource_group_name)
 
 def list_container_groups(client, resource_group_name):
    """Lists the container groups in the specified resource group.
