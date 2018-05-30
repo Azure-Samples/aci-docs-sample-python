@@ -31,7 +31,6 @@ def main():
     container_group_name = 'aci-' + ''.join(random.choice(string.digits) for _ in range(6))
 
     multi_container_group_name = container_group_name + "-multi";
-    async_container_group_name = container_group_name + "-async";
     task_container_group_name  = container_group_name + "-task";
 
     container_image_app = "microsoft/aci-helloworld";
@@ -58,7 +57,7 @@ def main():
 
     # Demonstrate various container group operations
     create_container_group(aciclient, resource_group, container_group_name, container_image_app)
-    #create_container_group_multi(aciclient, resource_group, multi_container_group_name, container_image_app, container_image_sidecar)
+    create_container_group_multi(aciclient, resource_group, multi_container_group_name, container_image_app, container_image_sidecar)
     #run_task_based_container(aciclient, resource_group, task_container_group_name, container_image_taskbased, None)
     list_container_groups(aciclient, resource_group)
     #print_container_group_details()
@@ -86,13 +85,12 @@ def create_container_group(aci_client, resource_group, container_group_name, con
                           ports = [ContainerPort(port=80)])
 
     # Configure the container group
-    group_os_type = OperatingSystemTypes.linux
     group_ip_address = IpAddress(ports = [Port(protocol=ContainerGroupNetworkProtocol.tcp,
                                  port = 80)],
                                  dns_name_label = container_group_name)
     group = ContainerGroup(location = resource_group.location,
                            containers = [container],
-                           os_type = group_os_type,
+                           os_type = OperatingSystemTypes.linux,
                            ip_address = group_ip_address)
 
     # Create the container group
@@ -102,6 +100,47 @@ def create_container_group(aci_client, resource_group, container_group_name, con
     container_group = aci_client.container_groups.get(resource_group.name, container_group_name)
 
     print("Once DNS has propagated, container group '{0}' will be reachable at http://{1}".format(container_group_name, container_group.ip_address.fqdn))
+
+def create_container_group_multi(aci_client, resource_group, container_group_name, container_image_1, container_image_2):
+    """Creates a container group with two containers in the specified resource group.
+
+    Arguments:
+        aci_client {azure.mgmt.containerinstance.ContainerInstanceManagementClient} -- An authenticated container instance management client.
+        resource_group {azure.mgmt.resource.resources.models.ResourceGroup} -- The resource group in which to create the container group.
+        container_group_name {str} -- The name of the container group to create.
+        container_image_1 {str} -- The first container image name and tag, for example 'microsoft\aci-helloworld:latest'.
+        container_image_2 {str} -- The second container image name and tag, for example 'microsoft\aci-tutorial-sidecar:latest'.
+    """
+    print("Creating container group '{0}'...".format(container_group_name))
+
+    # Configure the containers
+    container_resource_requests = ResourceRequests(memory_in_gb = 2, cpu = 1.0)
+    container_resource_requirements = ResourceRequirements(requests = container_resource_requests)
+    container_1 = Container(name = container_group_name + '-1',
+                          image = container_image_1,
+                          resources = container_resource_requirements,
+                          ports = [ContainerPort(port=80)])
+    container_2 = Container(name = container_group_name + '-2',
+                          image = container_image_2,
+                          resources = container_resource_requirements)
+
+    # Configure the container group
+    group_ip_address = IpAddress(ports = [Port(protocol=ContainerGroupNetworkProtocol.tcp,
+                                 port = 80)],
+                                 dns_name_label = container_group_name)
+    group = ContainerGroup(location = resource_group.location,
+                           containers = [container_1, container_2],
+                           os_type = OperatingSystemTypes.linux,
+                           ip_address = group_ip_address)
+
+    # Create the container group
+    aci_client.container_groups.create_or_update(resource_group.name, container_group_name, group)
+
+    # Get the created container group
+    container_group = aci_client.container_groups.get(resource_group.name, container_group_name)
+
+    print("Once DNS has propagated, container group '{0}' will be reachable at http://{1}".format(container_group_name, container_group.ip_address.fqdn))
+
 
 def list_container_groups(aci_client, resource_group):
    """Lists the container groups in the specified resource group.
