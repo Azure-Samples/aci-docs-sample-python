@@ -38,14 +38,16 @@ def main():
     container_image_sidecar = "microsoft/aci-tutorial-sidecar";
     container_image_taskbased = "microsoft/aci-wordcount";
 
-    # Authenticate the management clients with Azure. Set the AZURE_AUTH_LOCATION
-    # environment variable to the full path to an auth file. Generate an auth
-    # file with the Azure CLI: az ad sp create-for-rbac --sdk-auth > my.azureauth
+    # Authenticate the management clients with Azure.
+    # Set the AZURE_AUTH_LOCATION environment variable to the full path to an
+    # auth file. Generate an auth file with the Azure CLI or Cloud Shell:
+    # az ad sp create-for-rbac --sdk-auth > my.azureauth
     try:
         print("Authenticating with Azure using credentials in file at {0}".format(environ['AZURE_AUTH_LOCATION']))
+
         aciclient = get_client_from_auth_file(ContainerInstanceManagementClient)
         resclient = get_client_from_auth_file(ResourceManagementClient)
-    except (EnvironmentError, KeyError):
+    except (IOError, EnvironmentError, KeyError):
         print("\nFailed to authenticate to Azure. Have you set the AZURE_AUTH_LOCATION environment variable?\n")
         raise
 
@@ -57,7 +59,6 @@ def main():
     # Demonstrate various container group operations
     create_container_group(aciclient, resource_group, container_group_name, container_image_app)
     #create_container_group_multi(aciclient, resource_group, multi_container_group_name, container_image_app, container_image_sidecar)
-    #create_container_group_with_polling(aciclient, resource_group, async_container_group_name, container_image_app)
     #run_task_based_container(aciclient, resource_group, task_container_group_name, container_image_taskbased, None)
     list_container_groups(aciclient, resource_group)
     #print_container_group_details()
@@ -66,7 +67,7 @@ def main():
     resclient.resource_groups.delete(resource_group_name)
 
 def create_container_group(aci_client, resource_group, container_group_name, container_image_name):
-    """[summary]
+    """Creates a container group with a single container.
 
     Arguments:
         aci_client {azure.mgmt.containerinstance.ContainerInstanceManagementClient} -- An authenticated container instance management client.
