@@ -60,10 +60,10 @@ def main():
     resource_group = resclient.resource_groups.get(resource_group_name)
 
     # Demonstrate various container group operations
-    #create_container_group(aciclient, resource_group, container_group_name, container_image_app)
-    #create_container_group_multi(aciclient, resource_group, multi_container_group_name, container_image_app, container_image_sidecar)
+    create_container_group(aciclient, resource_group, container_group_name, container_image_app)
+    create_container_group_multi(aciclient, resource_group, multi_container_group_name, container_image_app, container_image_sidecar)
     run_task_based_container(aciclient, resource_group, task_container_group_name, container_image_taskbased, None)
-    #list_container_groups(aciclient, resource_group)
+    list_container_groups(aciclient, resource_group)
     #print_container_group_details()
 
     input("Press ENTER to delete all resources created by this sample: ")
