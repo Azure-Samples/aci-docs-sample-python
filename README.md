@@ -1,4 +1,4 @@
-# Azure Container Instances .NET code samples for documentation
+# Azure Container Instances Python code samples for documentation
 
 This sample application demonstrates several common [Azure Container Instances](https://docs.microsoft.com/azure/container-instances/) operations in Python using the [Azure libraries for Python](https://docs.microsoft.com/python/azure/python-sdk-azure-overview).
 
