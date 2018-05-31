@@ -54,7 +54,8 @@ def main():
         print("\nFailed to authenticate to Azure. Have you set the AZURE_AUTH_LOCATION environment variable?\n")
         raise
 
-    # Create a resource group into which the container groups are to be created
+    # Create (and then get) a resource group into which the container groups
+    # are to be created
     print("Creating resource group '{0}'...".format(resource_group_name))
     resclient.resource_groups.create_or_update(resource_group_name, { 'location': azure_region })
     resource_group = resclient.resource_groups.get(resource_group_name)
@@ -64,9 +65,10 @@ def main():
     create_container_group_multi(aciclient, resource_group, multi_container_group_name, container_image_app, container_image_sidecar)
     run_task_based_container(aciclient, resource_group, task_container_group_name, container_image_taskbased, None)
     list_container_groups(aciclient, resource_group)
-    #print_container_group_details()
+    print_container_group_details(aciclient, resource_group, multi_container_group_name)
 
     input("Press ENTER to delete all resources created by this sample: ")
+
     resclient.resource_groups.delete(resource_group_name)
 
 def create_container_group(aci_client, resource_group, container_group_name, container_image_name):
@@ -120,13 +122,15 @@ def create_container_group_multi(aci_client, resource_group, container_group_nam
     # Configure the containers
     container_resource_requests = ResourceRequests(memory_in_gb = 2, cpu = 1.0)
     container_resource_requirements = ResourceRequirements(requests = container_resource_requests)
+
     container_1 = Container(name = container_group_name + '-1',
-                          image = container_image_1,
-                          resources = container_resource_requirements,
-                          ports = [ContainerPort(port=80)])
+                            image = container_image_1,
+                            resources = container_resource_requirements,
+                            ports = [ContainerPort(port=80)])
+
     container_2 = Container(name = container_group_name + '-2',
-                          image = container_image_2,
-                          resources = container_resource_requirements)
+                            image = container_image_2,
+                            resources = container_resource_requirements)
 
     # Configure the container group
     group_ip_address = IpAddress(ports = [Port(protocol=ContainerGroupNetworkProtocol.tcp,
@@ -220,6 +224,30 @@ def list_container_groups(aci_client, resource_group):
 
    for container_group in container_groups:
        print("  {0}".format(container_group.name))
+
+def print_container_group_details(aci_client, resource_group, container_group_name):
+    """Gets the specified container group and then prints a few of its properties and their values.
+
+    Arguments:
+        aci_client {azure.mgmt.containerinstance.ContainerInstanceManagementClient} -- An authenticated container instance management client.
+        resource_group {azure.mgmt.resource.resources.models.ResourceGroup} -- he name of the resource group containing the container group.
+        container_group_name {str} -- The name of the container group whose details should be printed.
+    """
+    print("Getting container group details for container group '{0}'...".format(container_group_name))
+
+    container_group = aci_client.container_groups.get(resource_group.name, container_group_name)
+    print("------------------------")
+    print("Name:   {0}".format(container_group.name))
+    print("State:  {0}".format(container_group.provisioning_state))
+    print("FQDN:   {0}".format(container_group.ip_address.fqdn))
+    print("IP:     {0}".format(container_group.ip_address.ip))
+    print("Region: {0}".format(container_group.location))
+    print("Containers:")
+    for container in container_group.containers:
+        print("  Name:  {0}".format(container.name))
+        print("  Image: {0}".format(container.image))
+        print("  State: {0}".format(container.instance_view.current_state.state))
+        print("  ----------")
 
 if __name__ == "__main__":
    main()
