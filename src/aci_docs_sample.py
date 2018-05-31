@@ -67,8 +67,11 @@ def main():
     list_container_groups(aciclient, resource_group)
     print_container_group_details(aciclient, resource_group, multi_container_group_name)
 
+    # Clean up resources
     input("Press ENTER to delete all resources created by this sample: ")
-
+    aciclient.container_groups.delete(resource_group_name, container_group_name)
+    aciclient.container_groups.delete(resource_group_name, multi_container_group_name)
+    aciclient.container_groups.delete(resource_group_name, task_container_group_name)
     resclient.resource_groups.delete(resource_group_name)
 
 def create_container_group(aci_client, resource_group, container_group_name, container_image_name):
