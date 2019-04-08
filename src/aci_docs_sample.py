@@ -120,7 +120,8 @@ def create_container_group(aci_client, resource_group,
     # Configure the container group
     ports = [Port(protocol=ContainerGroupNetworkProtocol.tcp, port=80)]
     group_ip_address = IpAddress(ports=ports,
-                                 dns_name_label=container_group_name)
+                                 dns_name_label=container_group_name,
+                                 type="Public")
     group = ContainerGroup(location=resource_group.location,
                            containers=[container],
                            os_type=OperatingSystemTypes.linux,
@@ -177,7 +178,7 @@ def create_container_group_multi(aci_client, resource_group,
 
     # Configure the container group
     ports = [Port(protocol=ContainerGroupNetworkProtocol.tcp, port=80)]
-    group_ip_address = IpAddress(ports, dns_name_label=container_group_name)
+    group_ip_address = IpAddress(ports=ports, dns_name_label=container_group_name, type='Public')
     group = ContainerGroup(location=resource_group.location,
                            containers=[container_1, container_2],
                            os_type=OperatingSystemTypes.linux,
@@ -222,8 +223,8 @@ def run_task_based_container(aci_client, resource_group, container_group_name,
 
     # Configure some environment variables in the container which the
     # wordcount.py or other script can read to modify its behavior.
-    env_var_1 = EnvironmentVariable('NumWords', '5')
-    env_var_2 = EnvironmentVariable('MinLength', '8')
+    env_var_1 = EnvironmentVariable(name='NumWords', value='5')
+    env_var_2 = EnvironmentVariable(name='MinLength', value='8')
 
     print("Creating container group '{0}' with start command '{1}'"
           .format(container_group_name, start_command_line))
@@ -267,8 +268,8 @@ def run_task_based_container(aci_client, resource_group, container_group_name,
                               container_group.provisioning_state))
 
     # Get the logs for the container
-    logs = aci_client.container_logs.list(resource_group.name,
-                                          container_group_name,
+    logs = aci_client.container.list_logs(resource_group.name, 
+                                          container_group_name, 
                                           container.name)
 
     print("Logs for container '{0}':".format(container_group_name))
