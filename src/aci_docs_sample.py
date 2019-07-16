@@ -51,7 +51,8 @@ def main():
         print("Authenticating with Azure using credentials in file at {0}"
               .format(auth_file_path))
 
-        aciclient = get_client_from_auth_file(ContainerInstanceManagementClient)
+        aciclient = get_client_from_auth_file(
+            ContainerInstanceManagementClient)
         resclient = get_client_from_auth_file(ResourceManagementClient)
     else:
         print("\nFailed to authenticate to Azure. Have you set the"
@@ -111,7 +112,7 @@ def create_container_group(aci_client, resource_group,
     # Configure the container
     container_resource_requests = ResourceRequests(memory_in_gb=1, cpu=1.0)
     container_resource_requirements = ResourceRequirements(
-                                        requests=container_resource_requests)
+        requests=container_resource_requests)
     container = Container(name=container_group_name,
                           image=container_image_name,
                           resources=container_resource_requirements,
@@ -165,7 +166,8 @@ def create_container_group_multi(aci_client, resource_group,
 
     # Configure the containers
     container_resource_requests = ResourceRequests(memory_in_gb=2, cpu=1.0)
-    container_resource_requirements = ResourceRequirements(requests=container_resource_requests)
+    container_resource_requirements = ResourceRequirements(
+        requests=container_resource_requests)
 
     container_1 = Container(name=container_group_name + '-1',
                             image=container_image_1,
@@ -178,7 +180,8 @@ def create_container_group_multi(aci_client, resource_group,
 
     # Configure the container group
     ports = [Port(protocol=ContainerGroupNetworkProtocol.tcp, port=80)]
-    group_ip_address = IpAddress(ports=ports, dns_name_label=container_group_name, type='Public')
+    group_ip_address = IpAddress(
+        ports=ports, dns_name_label=container_group_name, type='Public')
     group = ContainerGroup(location=resource_group.location,
                            containers=[container_1, container_2],
                            os_type=OperatingSystemTypes.linux,
@@ -231,7 +234,8 @@ def run_task_based_container(aci_client, resource_group, container_group_name,
 
     # Configure the container
     container_resource_requests = ResourceRequests(memory_in_gb=1, cpu=1.0)
-    container_resource_requirements = ResourceRequirements(requests=container_resource_requests)
+    container_resource_requirements = ResourceRequirements(
+        requests=container_resource_requests)
     container = Container(name=container_group_name,
                           image=container_image_name,
                           resources=container_resource_requirements,
@@ -268,8 +272,8 @@ def run_task_based_container(aci_client, resource_group, container_group_name,
                               container_group.provisioning_state))
 
     # Get the logs for the container
-    logs = aci_client.container.list_logs(resource_group.name, 
-                                          container_group_name, 
+    logs = aci_client.container.list_logs(resource_group.name,
+                                          container_group_name,
                                           container.name)
 
     print("Logs for container '{0}':".format(container_group_name))
@@ -285,9 +289,11 @@ def list_container_groups(aci_client, resource_group):
        resource_group {azure.mgmt.resource.resources.models.ResourceGroup}
                    -- The resource group containing the container group(s).
     """
-    print("Listing container groups in resource group '{0}'...".format(resource_group.name))
+    print("Listing container groups in resource group '{0}'...".format(
+        resource_group.name))
 
-    container_groups = aci_client.container_groups.list_by_resource_group(resource_group.name)
+    container_groups = aci_client.container_groups.list_by_resource_group(
+        resource_group.name)
 
     for container_group in container_groups:
         print("  {0}".format(container_group.name))
@@ -321,7 +327,8 @@ def print_container_group_details(aci_client, resource_group, container_group_na
     for container in container_group.containers:
         print("  Name:  {0}".format(container.name))
         print("  Image: {0}".format(container.image))
-        print("  State: {0}".format(container.instance_view.current_state.state))
+        print("  State: {0}".format(
+            container.instance_view.current_state.state))
         print("  ----------")
 
 
