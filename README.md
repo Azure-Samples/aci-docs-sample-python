@@ -1,3 +1,13 @@
+---
+page_type: sample
+languages:
+- python
+products:
+- azure
+description: "This sample application demonstrates several common Azure Container Instances operations in Python using the Azure libraries for Python."
+urlFragment: aci-docs-sample-python
+---
+
 # Azure Container Instances Python code samples for documentation
 
 This sample application demonstrates several common [Azure Container Instances](https://docs.microsoft.com/azure/container-instances/) operations in Python using the [Azure libraries for Python](https://docs.microsoft.com/python/azure/python-sdk-azure-overview).
