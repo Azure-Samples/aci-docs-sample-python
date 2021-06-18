@@ -188,7 +188,7 @@ def create_container_group_multi(aci_client, resource_group,
                            ip_address=group_ip_address)
 
     # Create the container group
-    aci_client.container_groups.create_or_update(resource_group.name,
+    aci_client.container_groups.begin_create_or_update(resource_group.name,
                                                  container_group_name, group)
 
     # Get the created container group
@@ -249,7 +249,7 @@ def run_task_based_container(aci_client, resource_group, container_group_name,
                            restart_policy=ContainerGroupRestartPolicy.never)
 
     # Create the container group
-    result = aci_client.container_groups.create_or_update(resource_group.name,
+    result = aci_client.container_groups.begin_create_or_update(resource_group.name,
                                                           container_group_name,
                                                           group)
 
