@@ -84,11 +84,11 @@ def main():
     # Clean up resources
     input("Press ENTER to delete all resources created by this sample: ")
     aciclient.container_groups.begin_delete(resource_group_name,
-                                      container_group_name)
+                                      container_group_name).result()
     aciclient.container_groups.begin_delete(resource_group_name,
-                                      multi_container_group_name)
+                                      multi_container_group_name).result()
     aciclient.container_groups.begin_delete(resource_group_name,
-                                      task_container_group_name)
+                                      task_container_group_name).result()
     resclient.resource_groups.delete(resource_group_name)
 
 
@@ -131,7 +131,7 @@ def create_container_group(aci_client, resource_group,
     # Create the container group
     aci_client.container_groups.begin_create_or_update(resource_group.name,
                                                  container_group_name,
-                                                 group)
+                                                 group).result()
 
     # Get the created container group
     container_group = aci_client.container_groups.get(resource_group.name,
