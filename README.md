@@ -48,19 +48,24 @@ The code in this sample project demonstrates the following operations:
    source ~/venv/aci-docs-sample-python/bin/activate
    ```
 
-1. Use the [Azure CLI](https://docs.microsoft.com/cli/azure) (or [Cloud Shell](https://shell.azure.com/)) to generate an Azure credentials file ([more authentication details](https://docs.microsoft.com/python/azure/python-sdk-azure-authenticate?view=azure-python#mgmt-auth-file))
+2. Before we run the samples, we need to make sure we have setup the credentials. Follow the instructions in [register a new application using Azure portal](https://docs.microsoft.com/en-us/azure/active-directory/develop/howto-create-service-principal-portal) to obtain `subscription id`,`client id`,`client secret`, and `application id`
 
-   `az ad sp create-for-rbac --sdk-auth > my.azureauth`
-
-1. Set environment variable `AZURE_AUTH_LOCATION` to the full path of the credentials file
-1. `git clone https://github.com/Azure-Samples/aci-docs-sample-python`
-1. `cd aci-docs-sample-python`
-1. `pip install -r src/requirements.txt`
-1. `python src/aci_docs_sample.py`
+3. Store your credentials an environment variables.
+For example, in Linux-based OS, you can do
+```bash
+export AZURE_TENANT_ID="xxx"
+export AZURE_CLIENT_ID="xxx"
+export AZURE_CLIENT_SECRET="xxx"
+export SUBSCRIPTION_ID="xxx"
+```
+4. `git clone https://github.com/Azure-Samples/aci-docs-sample-python`
+5. `cd aci-docs-sample-python`
+6. `pip install -r src/requirements.txt`
+7. `python src/aci_docs_sample.py`
 
    ...sample runs...
 
-1. Exit virtualenv (if using a virtual environment): `deactivate`
+8. Exit virtualenv (if using a virtual environment): `deactivate`
 
 ## Resources
 

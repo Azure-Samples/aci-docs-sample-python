@@ -2,8 +2,8 @@ import random
 import string
 import time
 import sys
-from os import getenv
-from azure.common.client_factory import get_client_from_auth_file
+import os
+from azure.identity import DefaultAzureCredential
 from azure.mgmt.resource import ResourceManagementClient
 from azure.mgmt.containerinstance import ContainerInstanceManagementClient
 from azure.mgmt.containerinstance.models import (ContainerGroup,
@@ -28,7 +28,8 @@ except NameError:
 def main():
     """Main entry point for the application.
     """
-
+    # get SUBSCRIPTION_ID from env
+    SUBSCRIPTION_ID = os.environ.get("AZURE_SUBSCRIPTION_ID", None)
     azure_region = 'eastus'
     resource_group_name = 'aci-rg-' + ''.join(random.choice(string.digits)
                                               for _ in range(6))
@@ -38,25 +39,18 @@ def main():
     multi_container_group_name = container_group_name + "-multi"
     task_container_group_name = container_group_name + "-task"
 
-    container_image_app = "microsoft/aci-helloworld"
-    container_image_sidecar = "microsoft/aci-tutorial-sidecar"
-    container_image_taskbased = "microsoft/aci-wordcount"
+    container_image_app = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+    container_image_sidecar = "mcr.microsoft.com/oss/nginx/nginx:1.9.15-alpine"
 
-    # Authenticate the management clients with Azure.
-    # Set the AZURE_AUTH_LOCATION environment variable to the full path to an
-    # auth file. Generate an auth file with the Azure CLI or Cloud Shell:
-    # az ad sp create-for-rbac --sdk-auth > my.azureauth
-    auth_file_path = getenv('AZURE_AUTH_LOCATION', None)
-    if auth_file_path is not None:
-        print("Authenticating with Azure using credentials in file at {0}"
-              .format(auth_file_path))
 
-        aciclient = get_client_from_auth_file(
-            ContainerInstanceManagementClient)
-        resclient = get_client_from_auth_file(ResourceManagementClient)
-    else:
-        print("\nFailed to authenticate to Azure. Have you set the"
-              " AZURE_AUTH_LOCATION environment variable?\n")
+    resclient = ResourceManagementClient(
+        credential=DefaultAzureCredential(),
+        subscription_id=SUBSCRIPTION_ID
+    )
+    aciclient = ContainerInstanceManagementClient(
+        credential=DefaultAzureCredential(),
+        subscription_id=SUBSCRIPTION_ID
+    )
 
     # Create (and then get) a resource group into which the container groups
     # are to be created
@@ -74,7 +68,7 @@ def main():
                                  container_image_sidecar)
     run_task_based_container(aciclient, resource_group,
                              task_container_group_name,
-                             container_image_taskbased,
+                             container_image_app,
                              None)
     list_container_groups(aciclient, resource_group)
     print_container_group_details(aciclient,
@@ -83,13 +77,13 @@ def main():
 
     # Clean up resources
     input("Press ENTER to delete all resources created by this sample: ")
-    aciclient.container_groups.delete(resource_group_name,
-                                      container_group_name)
-    aciclient.container_groups.delete(resource_group_name,
-                                      multi_container_group_name)
-    aciclient.container_groups.delete(resource_group_name,
-                                      task_container_group_name)
-    resclient.resource_groups.delete(resource_group_name)
+    aciclient.container_groups.begin_delete(resource_group_name,
+                                      container_group_name).result()
+    aciclient.container_groups.begin_delete(resource_group_name,
+                                      multi_container_group_name).result()
+    aciclient.container_groups.begin_delete(resource_group_name,
+                                      task_container_group_name).result()
+    resclient.resource_groups.delete(resource_group_name).result()
 
 
 def create_container_group(aci_client, resource_group,
@@ -129,9 +123,9 @@ def create_container_group(aci_client, resource_group,
                            ip_address=group_ip_address)
 
     # Create the container group
-    aci_client.container_groups.create_or_update(resource_group.name,
+    aci_client.container_groups.begin_create_or_update(resource_group.name,
                                                  container_group_name,
-                                                 group)
+                                                 group).result()
 
     # Get the created container group
     container_group = aci_client.container_groups.get(resource_group.name,
@@ -188,8 +182,8 @@ def create_container_group_multi(aci_client, resource_group,
                            ip_address=group_ip_address)
 
     # Create the container group
-    aci_client.container_groups.create_or_update(resource_group.name,
-                                                 container_group_name, group)
+    aci_client.container_groups.begin_create_or_update(resource_group.name,
+                                                 container_group_name, group).result()
 
     # Get the created container group
     container_group = aci_client.container_groups.get(resource_group.name,
@@ -249,7 +243,7 @@ def run_task_based_container(aci_client, resource_group, container_group_name,
                            restart_policy=ContainerGroupRestartPolicy.never)
 
     # Create the container group
-    result = aci_client.container_groups.create_or_update(resource_group.name,
+    result = aci_client.container_groups.begin_create_or_update(resource_group.name,
                                                           container_group_name,
                                                           group)
 
@@ -272,7 +266,7 @@ def run_task_based_container(aci_client, resource_group, container_group_name,
                               container_group.provisioning_state))
 
     # Get the logs for the container
-    logs = aci_client.container.list_logs(resource_group.name,
+    logs = aci_client.containers.list_logs(resource_group.name,
                                           container_group_name,
                                           container.name)
 
